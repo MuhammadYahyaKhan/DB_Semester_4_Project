@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strategy 3: MACD Momentum</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #f8fafc; margin: 0; padding: 0; }
+        a { text-decoration: none; }
+        .header { background-color: #1e293b; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
+        .header h1 { margin: 0; font-size: 1.5em; color: #38bdf8; }
+        .back-btn { background-color: #334155; color: white; padding: 8px 15px; border-radius: 5px; font-weight: bold; transition: 0.2s; }
+        .back-btn:hover { background-color: #475569; }
+        .container { max-width: 1400px; margin: 40px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 2fr; gap: 30px; }
+        .card { background-color: #1e293b; padding: 25px; border-radius: 10px; border: 1px solid #334155; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .card h2 { margin-top: 0; color: #38bdf8; font-size: 1.4em; border-bottom: 1px solid #334155; padding-bottom: 10px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #94a3b8; font-weight: bold; font-size: 0.9em; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #334155; border-radius: 5px; background-color: #0f172a; color: white; box-sizing: border-box; }
+        .run-btn { width: 100%; padding: 12px; background-color: #10b981; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1.1em; margin-top: 10px; transition: 0.2s; }
+        .run-btn:hover { background-color: #059669; }
+        .results-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+        .result-stat { background-color: #0f172a; padding: 15px; border-radius: 5px; text-align: center; border: 1px solid #334155; }
+        .result-stat h4 { margin: 0 0 5px 0; color: #94a3b8; font-size: 0.85em; text-transform: uppercase; }
+        .result-stat .val { font-size: 1.5em; font-weight: bold; color: #f8fafc; margin: 0; }
+        .chart-placeholder { width: 100%; height: 400px; background-color: #0f172a; border: 1px dashed #475569; border-radius: 5px; display: flex; justify-content: center; align-items: center; color: #64748b; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Strategy 3: MACD Momentum</h1>
+        <a href="{% url 'dashboard' %}" class="back-btn">&larr; Back to Dashboard</a>
+    </div>
+
+    <div class="container">
+        
+        <div class="card">
+            <h2>Algorithm Parameters (MACD)</h2>
+            <p style="color: #cbd5e1; font-size: 0.9em; margin-bottom: 20px;">
+                Input variables for the Moving Average Convergence Divergence oscillator. It calculates the difference between two Exponential Moving Averages.
+            </p>
+            
+            <form method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>Asset Ticker</label>
+                    <input type="text" name="ticker" value="{{ ticker|default:'AAPL' }}" required>
+                </div>
+                <div class="form-group">
+                    <label>Fast EMA Period</label>
+                    <input type="number" name="fast_ema" value="{{ fast_ema|default:'12' }}" required>
+                </div>
+                <div class="form-group">
+                    <label>Slow EMA Period</label>
+                    <input type="number" name="slow_ema" value="{{ slow_ema|default:'26' }}" required>
+                </div>
+                <div class="form-group">
+                    <label>Signal Line Period</label>
+                    <input type="number" name="signal_line" value="{{ signal_line|default:'9' }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="start_date">Backtest Start Date</label>
+                    <input type="date" id="start_date" name="start_date" value="{{ start_date|default:'2023-01-01' }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="end_date">Backtest End Date</label>
+                    <input type="date" id="end_date" name="end_date" value="{{ end_date|default:'2024-01-01' }}" required>
+                </div>
+                <button type="submit" class="run-btn">Run MACD Backtest</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Backtest Results</h2>
+            {% if backtest_run %}
+                <div class="results-grid">
+                    <div class="result-stat">
+                        <h4>Total Return</h4>
+                        <p class="val" style="color: {% if total_return > 0 %}#10b981{% else %}#ef4444{% endif %};">{{ total_return }}%</p>
+                    </div>
+                    <div class="result-stat">
+                        <h4>Total Trades</h4>
+                        <p class="val">{{ total_trades }}</p>
+                    </div>
+                    <div class="result-stat">
+                        <h4>Max Drawdown</h4>
+                        <p class="val" style="color: #ef4444;">{{ max_drawdown }}%</p>
+                    </div>
+                </div>
+                <div style="background-color: #0f172a; border-radius: 5px; padding: 10px;">{{ chart_html|safe }}</div>
+            {% else %}
+                <p style="color: #cbd5e1; font-size: 0.95em;">Awaiting algorithm execution. Input your parameters on the left and click "Run MACD Backtest" to generate statistical results.</p>
+                <div class="chart-placeholder">Chart Data Will Render Here</div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
